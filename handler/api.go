@@ -27,7 +27,8 @@ func API() http.Handler {
 	r.Route("/repo", func(cr chi.Router) {
 		cr.Get("/", api.RepoList())
 		cr.Post("/", api.RepoCreate())
-		cr.Get("/info", api.RepoInfo())
+		cr.Get("/{repo}", api.RepoInfo())
+		cr.Get("/info", api.RepoInfoBySlug())
 		cr.Put("/{repo}", api.RepoUpdate())
 		cr.Delete("/{repo}", api.RepoDelete())
 		cr.Post("/{repo}/build", api.Trigger())

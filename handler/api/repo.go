@@ -6,6 +6,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"github.com/go-chi/chi"
 	"github.com/pkgms/go/ctr"
 	"github.com/zc2638/drone-control/global"
 	"github.com/zc2638/drone-control/store"
@@ -45,9 +46,32 @@ func RepoList() http.HandlerFunc {
 	}
 }
 
-// RepoInfo returns an http.HandlerFunc that processes an
+// RepoInfoBySlug returns an http.HandlerFunc that processes an
 // http.Request to get the repo details.
 func RepoInfo() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, _ := strconv.ParseInt(
+			chi.URLParam(r, "repo"), 10, 64)
+		if id < 1 {
+			ctr.BadRequest(w, errors.New("cannot find repo, repo_id is invalid"))
+			return
+		}
+
+		var repo store.ReposData
+		db := global.GormDB().Where(&store.ReposData{
+			ID: id,
+		}).First(&repo)
+		if db.Error != nil {
+			ctr.BadRequest(w, db.Error)
+			return
+		}
+		ctr.OK(w, repo)
+	}
+}
+
+// RepoInfoBySlug returns an http.HandlerFunc that processes an
+// http.Request to get the repo details by namespace and name.
+func RepoInfoBySlug() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		namespace := r.URL.Query().Get("namespace")
 		name := r.URL.Query().Get("name")
@@ -58,7 +82,7 @@ func RepoInfo() http.HandlerFunc {
 		var repo store.ReposData
 		db := global.GormDB().Where(&store.ReposData{
 			Namespace: namespace,
-			Name: name,
+			Name:      name,
 		}).First(&repo)
 		if db.Error != nil {
 			ctr.BadRequest(w, db.Error)
