@@ -4,7 +4,6 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"github.com/pkgms/go/ctr"
@@ -50,18 +49,22 @@ func RepoList() http.HandlerFunc {
 // http.Request to get the repo details.
 func RepoInfo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		space := r.URL.Query().Get("space")
+		namespace := r.URL.Query().Get("namespace")
 		name := r.URL.Query().Get("name")
-		if space == "" || name == "" {
+		if namespace == "" || name == "" {
 			ctr.BadRequest(w, errors.New("space or name is empty"))
 			return
 		}
-		repository, err := store.RepoStore().FindName(context.Background(), space, name)
-		if err != nil {
-			ctr.BadRequest(w, err)
+		var repo store.ReposData
+		db := global.GormDB().Where(&store.ReposData{
+			Namespace: namespace,
+			Name: name,
+		}).First(&repo)
+		if db.Error != nil {
+			ctr.BadRequest(w, db.Error)
 			return
 		}
-		ctr.OK(w, repository)
+		ctr.OK(w, repo)
 	}
 }
 

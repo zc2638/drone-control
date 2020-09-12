@@ -36,7 +36,7 @@ func API() http.Handler {
 		cr.Get("/{repo}/build/{build}/log/{stage}/{step}", api.BuildLog())
 	})
 	r.Route("/stream", func(cr chi.Router) {
-		r.Get("/{repo}/{build}/{stage}/{step}", api.BuildLogStream())
+		cr.Get("/{repo}/{build}/{stage}/{step}", api.BuildLogStream())
 	})
 	return r
 }
