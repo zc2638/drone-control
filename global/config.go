@@ -11,6 +11,7 @@ import (
 	"github.com/pkgms/go/server"
 	"github.com/spf13/viper"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -29,7 +30,7 @@ func Environ() *Config {
 	cfg := &Config{}
 	cfg.Server.Port = DefaultPort
 	cfg.RPC.Proto = "http"
-	cfg.RPC.Host = "127.0.0.1:2379"
+	cfg.RPC.Host = "127.0.0.1:" + strconv.Itoa(DefaultPort)
 	return cfg
 }
 
