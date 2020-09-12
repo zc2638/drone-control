@@ -278,7 +278,7 @@ func LogUpload() http.HandlerFunc {
 		id, _ := strconv.ParseInt(
 			chi.URLParam(r, "step"), 10, 64)
 
-		dir := filepath.Join(global.PathStageLog)
+		dir := global.PathStageLog
 		if _, err := os.Stat(dir); err != nil {
 			if !os.IsNotExist(err) {
 				ctr.BadRequest(w, err)

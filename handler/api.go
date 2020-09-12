@@ -31,6 +31,12 @@ func API() http.Handler {
 		cr.Put("/{repo}", api.RepoUpdate())
 		cr.Delete("/{repo}", api.RepoDelete())
 		cr.Post("/{repo}/build", api.Trigger())
+		cr.Get("/{repo}/build", api.BuildList())
+		cr.Get("/{repo}/build/{build}", api.BuildInfo())
+		cr.Get("/{repo}/build/{build}/log/{stage}/{step}", api.BuildLog())
+	})
+	r.Route("/stream", func(cr chi.Router) {
+		r.Get("/{repo}/{build}/{stage}/{step}", api.BuildLogStream())
 	})
 	return r
 }

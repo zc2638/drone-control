@@ -33,6 +33,9 @@ func RepoList() http.HandlerFunc {
 		if page < 1 {
 			page = 1
 		}
+		if size < 1 {
+			size = 10
+		}
 		var repos []store.ReposData
 		db := global.GormDB().Limit(size).Offset((page - 1) * size).Find(&repos)
 		if db.Error != nil {

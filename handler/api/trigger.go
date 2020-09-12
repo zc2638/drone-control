@@ -27,12 +27,13 @@ type Req struct {
 
 func Trigger() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		idStr := chi.URLParam(r, "repo")
-		id, err := strconv.ParseInt(idStr, 10, 64)
-		if err != nil {
-			ctr.BadRequest(w, err)
+		id, _ := strconv.ParseInt(
+			chi.URLParam(r, "repo"), 10, 64)
+		if id < 1 {
+			ctr.BadRequest(w, errors.New("cannot find repo, repo_id is invalid"))
 			return
 		}
+
 		var repo store.ReposData
 		db := global.GormDB().Where(&store.ReposData{ID: id}).First(&repo)
 		if db.Error != nil {
