@@ -65,7 +65,7 @@ func Route() http.Handler {
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		ctr.OK(w, "Hello World!")
 	})
-	r.Mount("/rpc/v2", handler.RPC(global.Cfg().Server.Secret))
+	r.Mount("/rpc/v2", handler.RPC(global.Cfg().RPC.Secret))
 	r.Mount("/api", handler.API())
 	r.Mount("/static", handler.Static())
 	return r

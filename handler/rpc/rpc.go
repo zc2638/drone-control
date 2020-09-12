@@ -171,8 +171,8 @@ func Info() http.HandlerFunc {
 		}
 		// TODO config add
 		res.System = &core.System{
-			Proto: "http",
-			Host:  "127.0.0.1",
+			Proto: global.Cfg().RPC.Proto,
+			Host:  global.Cfg().RPC.Host,
 		}
 		ctr.OK(w, &details{
 			Context: res,

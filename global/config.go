@@ -5,6 +5,7 @@ package global
 
 import (
 	"fmt"
+	droneconfig "github.com/drone/drone/cmd/drone-server/config"
 	"github.com/mitchellh/go-homedir"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkgms/go/server"
@@ -19,13 +20,16 @@ const DefaultPort = 2639
 const DefaultRepoTimeout = 30
 
 type Config struct {
-	Server server.Config `json:"server"`
+	Server  server.Config       `json:"server"`
+	Cleanup droneconfig.Cleanup `json:"cleanup"`
+	RPC     droneconfig.RPC     `json:"rpc"`
 }
 
 func Environ() *Config {
 	cfg := &Config{}
 	cfg.Server.Port = DefaultPort
-	cfg.Server.Secret = "test"
+	cfg.RPC.Proto = "http"
+	cfg.RPC.Host = "127.0.0.1:2379"
 	return cfg
 }
 
