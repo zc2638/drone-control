@@ -6,6 +6,7 @@ package handler
 import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/zc2638/drone-control/global"
 	"github.com/zc2638/drone-control/handler/api"
 	"github.com/zc2638/drone-control/handler/public"
 	"github.com/zc2638/drone-control/handler/rpc"
@@ -42,13 +43,13 @@ func API() http.Handler {
 	return r
 }
 
-func RPC(secret string) http.Handler {
+func RPC() http.Handler {
 	r := chi.NewRouter()
 	r.Use(
 		middleware.Recoverer,
 		middleware.Logger,
 		middleware.NoCache,
-		authorization(secret),
+		authorization(),
 	)
 	r.Post("/nodes/:machine", rpc.Join())
 	r.Delete("/nodes/:machine", rpc.Leave())
@@ -64,7 +65,8 @@ func RPC(secret string) http.Handler {
 	return r
 }
 
-func authorization(token string) func(http.Handler) http.Handler {
+func authorization() func(http.Handler) http.Handler {
+	token := global.Cfg().RPC.Secret
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// prevents system administrators from accidentally
