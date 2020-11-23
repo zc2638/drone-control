@@ -229,7 +229,7 @@ func AfterAll(ctx context.Context, stage *core.Stage) error {
 	//
 	//
 
-	if isBuildComplete(stages) == false {
+	if !isBuildComplete(stages) {
 		logger.Debugln("manager: build pending completion of additional stages")
 		return nil
 	}
@@ -302,17 +302,17 @@ func cancelDownstream(
 		}
 
 		var skip bool
-		if failed == true && s.OnFailure == false {
+		if failed && !s.OnFailure {
 			skip = true
 		}
-		if failed == false && s.OnSuccess == false {
+		if !failed && !s.OnSuccess {
 			skip = true
 		}
-		if skip == false {
+		if !skip {
 			continue
 		}
 
-		if areDepsComplete(s, stages) == false {
+		if !areDepsComplete(s, stages) {
 			continue
 		}
 
@@ -362,7 +362,7 @@ func scheduleDownstream(
 			// if isDep(stage, sibling) == false {
 			// 	continue
 			// }
-			if areDepsComplete(sibling, stages) == false {
+			if !areDepsComplete(sibling, stages) {
 				continue
 			}
 			// if isLastDep(stage, sibling, stages) == false {

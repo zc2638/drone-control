@@ -10,6 +10,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkgms/go/server"
 	"github.com/spf13/viper"
+	"github.com/zc2638/drone-control/global/database"
 	"os"
 	"strconv"
 	"strings"
@@ -21,9 +22,10 @@ const DefaultPort = 2639
 const DefaultRepoTimeout = 30
 
 type Config struct {
-	Server  server.Config       `json:"server"`
-	Cleanup droneconfig.Cleanup `json:"cleanup"`
-	RPC     droneconfig.RPC     `json:"rpc"`
+	Server   server.Config       `json:"server"`
+	Cleanup  droneconfig.Cleanup `json:"cleanup"`
+	RPC      droneconfig.RPC     `json:"rpc"`
+	Database database.Config     `json:"database"`
 }
 
 func Environ() *Config {

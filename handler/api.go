@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/zc2638/drone-control/global"
+	"github.com/zc2638/drone-control/global/route"
 	"github.com/zc2638/drone-control/handler/api"
 	"github.com/zc2638/drone-control/handler/public"
 	"github.com/zc2638/drone-control/handler/rpc"
@@ -25,19 +26,20 @@ func API() http.Handler {
 		middleware.Recoverer,
 		middleware.Logger,
 	)
-	r.Route("/repo", func(cr chi.Router) {
-		cr.Get("/", api.RepoList())
-		cr.Post("/", api.RepoCreate())
-		cr.Get("/{repo}", api.RepoInfo())
-		cr.Get("/info", api.RepoInfoBySlug())
-		cr.Put("/{repo}", api.RepoUpdate())
-		cr.Delete("/{repo}", api.RepoDelete())
-		cr.Post("/{repo}/build", api.Trigger())
-		cr.Get("/{repo}/build", api.BuildList())
-		cr.Get("/{repo}/build/{build}", api.BuildInfo())
-		cr.Get("/{repo}/build/{build}/log/{stage}/{step}", api.BuildLog())
-	})
-	r.Route("/stream", func(cr chi.Router) {
+
+	r.Get(route.APIRouteRepo, api.RepoList())
+	r.Post(route.APIRouteRepo, api.RepoCreate())
+	r.Get(route.APIRouteRepoInfoPath, api.RepoInfoBySlug())
+	r.Get(route.APIRouteRepoPath, api.RepoInfo())
+	r.Put(route.APIRouteRepoPath, api.RepoUpdate())
+	r.Delete(route.APIRouteRepoPath, api.RepoDelete())
+
+	r.Get(route.APIRouteBuild, api.BuildList())
+	r.Post(route.APIRouteBuild, api.Trigger())
+	r.Get(route.APIRouteBuildPath, api.BuildInfo())
+	r.Get(route.APIRouteStepLogPath, api.BuildLog())
+
+	r.Route(route.APIRouteStream, func(cr chi.Router) {
 		cr.Get("/{repo}/{build}/{stage}/{step}", api.BuildLogStream())
 	})
 	return r
