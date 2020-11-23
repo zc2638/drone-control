@@ -15,17 +15,10 @@ var config *Config
 
 func InitCfg(cfg *Config) error {
 	config = cfg
-	var err error
-	if sqlDB, err = NewDB(); err != nil {
+	if err := initDatabase(&cfg.Database); err != nil {
 		return err
 	}
-	if gormDB, err = NewGormDB(sqlDB); err != nil {
-		return err
-	}
-	if droneDB, err = NewDroneDB("sqlite3", sqlDB); err != nil {
-		return err
-	}
-	InitScheduler(droneDB)
+	InitScheduler(DroneDB())
 	return nil
 }
 
