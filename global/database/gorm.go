@@ -81,5 +81,6 @@ func sqliteLink(db *sql.DB) (*gorm.DB, error) {
 	if err := dialector.Initialize(dbConnect); err != nil {
 		return nil, err
 	}
+	dbConnect.Dialector = dialector
 	return dbConnect, nil
 }
