@@ -10,10 +10,14 @@ import (
 	"github.com/zc2638/drone-control/store"
 )
 
-type repoClient struct{ *slug }
+type repoClient struct {
+	client    *Client
+	namespace string
+	name      string
+}
 
 func (c *repoClient) List() ([]store.ReposData, error) {
-	res, err := c.client.R().
+	res, err := c.client.cli().
 		SetResult([]store.ReposData{}).
 		Get(handler.PathRepo)
 	if err != nil {
@@ -23,7 +27,7 @@ func (c *repoClient) List() ([]store.ReposData, error) {
 }
 
 func (c *repoClient) Info() (*store.ReposData, error) {
-	res, err := c.client.R().
+	res, err := c.client.cli().
 		SetPathParams(map[string]string{
 			"namespace": c.namespace,
 			"name":      c.name,
@@ -41,8 +45,7 @@ func (c *repoClient) Info() (*store.ReposData, error) {
 }
 
 func (c *repoClient) Apply(repo *api.RepoParams) error {
-	res, err := c.client.R().
-		SetHeader("Content-Type", "application/json").
+	res, err := c.client.cli().
 		SetBody(repo).
 		Post(handler.PathRepo)
 	if err != nil {
@@ -55,7 +58,7 @@ func (c *repoClient) Apply(repo *api.RepoParams) error {
 }
 
 func (c *repoClient) Delete() error {
-	res, err := c.client.R().
+	res, err := c.client.cli().
 		SetPathParams(map[string]string{
 			"namespace": c.namespace,
 			"name":      c.name,

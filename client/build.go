@@ -10,10 +10,14 @@ import (
 	"strconv"
 )
 
-type buildClient struct{ *slug }
+type buildClient struct {
+	client    *Client
+	namespace string
+	name      string
+}
 
 func (c *buildClient) List() ([]core.Build, error) {
-	res, err := c.client.R().
+	res, err := c.client.cli().
 		SetPathParams(map[string]string{
 			"namespace": c.namespace,
 			"name":      c.name,
@@ -27,7 +31,7 @@ func (c *buildClient) List() ([]core.Build, error) {
 }
 
 func (c *buildClient) Info(build int) (*core.Build, error) {
-	res, err := c.client.R().
+	res, err := c.client.cli().
 		SetPathParams(map[string]string{
 			"namespace": c.namespace,
 			"name":      c.name,
@@ -46,7 +50,7 @@ func (c *buildClient) Info(build int) (*core.Build, error) {
 }
 
 func (c *buildClient) Run() error {
-	res, err := c.client.R().
+	res, err := c.client.cli().
 		SetPathParams(map[string]string{
 			"namespace": c.namespace,
 			"name":      c.name,
@@ -62,7 +66,7 @@ func (c *buildClient) Run() error {
 }
 
 func (c *buildClient) Log(build, stage, step int) ([]byte, error) {
-	res, err := c.client.R().
+	res, err := c.client.cli().
 		SetPathParams(map[string]string{
 			"namespace": c.namespace,
 			"name":      c.name,

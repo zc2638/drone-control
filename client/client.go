@@ -55,30 +55,33 @@ func New(cfg *Config) *Client {
 	return &Client{config: cfg}
 }
 
-func (c *Client) slug() *slug {
-	cli := resty.New().
+func (c *Client) cli() *resty.Request {
+	return resty.New().
 		SetHostURL(c.config.Host).
-		SetHeader("Content-Type", "application/json")
-	return &slug{client: cli}
+		SetHeader("Content-Type", "application/json").
+		R()
 }
 
 func (c *Client) Repo(namespace, name string) RepoInterface {
-	s := c.slug()
-	s.namespace = namespace
-	s.name = name
-	return &repoClient{slug: s}
+	return &repoClient{
+		client:    c,
+		namespace: namespace,
+		name:      name,
+	}
 }
 
 func (c *Client) Build(namespace, name string) BuildInterface {
-	s := c.slug()
-	s.namespace = namespace
-	s.name = name
-	return &buildClient{slug: s}
+	return &buildClient{
+		client:    c,
+		namespace: namespace,
+		name:      name,
+	}
 }
 
 func (c *Client) Stream(namespace, name string) StreamInterface {
-	s := c.slug()
-	s.namespace = namespace
-	s.name = name
-	return &streamClient{slug: s}
+	return &streamClient{
+		client:    c,
+		namespace: namespace,
+		name:      name,
+	}
 }
