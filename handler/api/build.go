@@ -20,14 +20,36 @@ import (
 	"time"
 )
 
+func getRepo(namespace, name string) (*store.ReposData, error) {
+	var repo store.ReposData
+	db := global.GormDB().Where(&store.ReposData{
+		Namespace: namespace,
+		Name:      name,
+	}).First(&repo)
+	if db.Error != nil {
+		return nil, db.Error
+	}
+	if db.RowsAffected == 0 {
+		return nil, nil
+	}
+	return &repo, nil
+}
+
 func BuildList() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, _ := strconv.ParseInt(
-			chi.URLParam(r, "repo"), 10, 64)
-		if id < 1 {
-			ctr.BadRequest(w, errors.New("cannot find repo, repo_id is invalid"))
+		namespace := chi.URLParam(r, "namespace")
+		name := chi.URLParam(r, "name")
+		repo, err := getRepo(namespace, name)
+		if err != nil {
+			ctr.BadRequest(w, err)
 			return
 		}
+		if repo == nil {
+			ctr.BadRequest(w, errors.New("cannot find the repo"))
+			return
+		}
+
+		id := repo.ID
 		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 		size, _ := strconv.Atoi(r.URL.Query().Get("size"))
 		if page < 1 {
@@ -36,7 +58,6 @@ func BuildList() http.HandlerFunc {
 		if size < 1 {
 			size = 10
 		}
-
 		list, err := store.BuildStore().List(context.Background(), id, size, (page-1)*size)
 		if err != nil {
 			ctr.BadRequest(w, err)
@@ -48,16 +69,21 @@ func BuildList() http.HandlerFunc {
 
 func BuildInfo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, _ := strconv.ParseInt(
-			chi.URLParam(r, "repo"), 10, 64)
-		if id < 1 {
-			ctr.BadRequest(w, errors.New("cannot find repo, repo_id is invalid"))
+		namespace := chi.URLParam(r, "namespace")
+		name := chi.URLParam(r, "name")
+		repo, err := getRepo(namespace, name)
+		if err != nil {
+			ctr.BadRequest(w, err)
 			return
 		}
+		if repo == nil {
+			ctr.BadRequest(w, errors.New("cannot find the repo"))
+			return
+		}
+
 		buildNumber, _ := strconv.ParseInt(
 			chi.URLParam(r, "build"), 10, 64)
-
-		build, err := store.BuildStore().FindNumber(context.Background(), id, buildNumber)
+		build, err := store.BuildStore().FindNumber(context.Background(), repo.ID, buildNumber)
 		if err != nil {
 			ctr.BadRequest(w, err)
 			return
@@ -74,12 +100,18 @@ func BuildInfo() http.HandlerFunc {
 
 func BuildLog() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, _ := strconv.ParseInt(
-			chi.URLParam(r, "repo"), 10, 64)
-		if id < 1 {
-			ctr.BadRequest(w, errors.New("cannot find repo, repo_id is invalid"))
+		namespace := chi.URLParam(r, "namespace")
+		name := chi.URLParam(r, "name")
+		repo, err := getRepo(namespace, name)
+		if err != nil {
+			ctr.BadRequest(w, err)
 			return
 		}
+		if repo == nil {
+			ctr.BadRequest(w, errors.New("cannot find the repo"))
+			return
+		}
+
 		buildNumber, _ := strconv.ParseInt(
 			chi.URLParam(r, "build"), 10, 64)
 		stageNumber, _ := strconv.Atoi(
@@ -87,7 +119,7 @@ func BuildLog() http.HandlerFunc {
 		stepNumber, _ := strconv.Atoi(
 			chi.URLParam(r, "step"))
 
-		build, err := store.BuildStore().FindNumber(context.Background(), id, buildNumber)
+		build, err := store.BuildStore().FindNumber(context.Background(), repo.ID, buildNumber)
 		if err != nil {
 			ctr.BadRequest(w, err)
 			return
@@ -115,12 +147,18 @@ func BuildLog() http.HandlerFunc {
 
 func BuildLogStream() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, _ := strconv.ParseInt(
-			chi.URLParam(r, "repo"), 10, 64)
-		if id < 1 {
-			ctr.BadRequest(w, errors.New("cannot find repo, repo_id is invalid"))
+		namespace := chi.URLParam(r, "namespace")
+		name := chi.URLParam(r, "name")
+		repo, err := getRepo(namespace, name)
+		if err != nil {
+			ctr.BadRequest(w, err)
 			return
 		}
+		if repo == nil {
+			ctr.BadRequest(w, errors.New("cannot find the repo"))
+			return
+		}
+
 		buildNumber, _ := strconv.ParseInt(
 			chi.URLParam(r, "build"), 10, 64)
 		stageNumber, _ := strconv.Atoi(
@@ -128,7 +166,7 @@ func BuildLogStream() http.HandlerFunc {
 		stepNumber, _ := strconv.Atoi(
 			chi.URLParam(r, "step"))
 
-		build, err := store.BuildStore().FindNumber(r.Context(), id, buildNumber)
+		build, err := store.BuildStore().FindNumber(r.Context(), repo.ID, buildNumber)
 		if err != nil {
 			ctr.NotFound(w, err)
 			return

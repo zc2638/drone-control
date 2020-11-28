@@ -1,0 +1,84 @@
+/**
+ * Created by zc on 2020/9/29.
+ */
+package client
+
+import (
+	"github.com/drone/drone/core"
+	"github.com/go-resty/resty/v2"
+	"github.com/zc2638/drone-control/handler/api"
+	"github.com/zc2638/drone-control/store"
+	"io"
+)
+
+type Interface interface {
+	Repo(namespace, name string) RepoInterface
+	Build(namespace, name string) BuildInterface
+	Stream(namespace, name string) StreamInterface
+}
+
+type (
+	RepoInterface interface {
+		List() ([]store.ReposData, error)
+		Info() (*store.ReposData, error)
+		Apply(repo *api.RepoParams) error
+		Delete() error
+	}
+
+	BuildInterface interface {
+		List() ([]core.Build, error)
+		Info(build int) (*core.Build, error)
+		Run() error
+		Log(build, stage, step int) ([]byte, error)
+	}
+
+	StreamInterface interface {
+		Log(build, stage, step int) (io.ReadCloser, error)
+	}
+)
+
+type Config struct {
+	Host string `json:"host"`
+}
+
+type slug struct {
+	client    *resty.Client
+	namespace string
+	name      string
+}
+
+type Client struct {
+	config *Config
+}
+
+func New(cfg *Config) *Client {
+	return &Client{config: cfg}
+}
+
+func (c *Client) slug() *slug {
+	cli := resty.New().
+		SetHostURL(c.config.Host).
+		SetHeader("Content-Type", "application/json")
+	return &slug{client: cli}
+}
+
+func (c *Client) Repo(namespace, name string) RepoInterface {
+	s := c.slug()
+	s.namespace = namespace
+	s.name = name
+	return &repoClient{slug: s}
+}
+
+func (c *Client) Build(namespace, name string) BuildInterface {
+	s := c.slug()
+	s.namespace = namespace
+	s.name = name
+	return &buildClient{slug: s}
+}
+
+func (c *Client) Stream(namespace, name string) StreamInterface {
+	s := c.slug()
+	s.namespace = namespace
+	s.name = name
+	return &streamClient{slug: s}
+}

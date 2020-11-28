@@ -46,7 +46,7 @@ func RepoList() http.HandlerFunc {
 	}
 }
 
-// RepoInfoBySlug returns an http.HandlerFunc that processes an
+// RepoInfo returns an http.HandlerFunc that processes an
 // http.Request to get the repo details.
 func RepoInfo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -88,13 +88,17 @@ func RepoInfoBySlug() http.HandlerFunc {
 			ctr.BadRequest(w, db.Error)
 			return
 		}
+		if db.RowsAffected == 0 {
+			ctr.OK(w, nil)
+			return
+		}
 		ctr.OK(w, repo)
 	}
 }
 
-// RepoCreate returns an http.HandlerFunc that processes an
+// RepoApply returns an http.HandlerFunc that processes an
 // http.Request to create a repo.
-func RepoCreate() http.HandlerFunc {
+func RepoApply() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var data RepoParams
 		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
@@ -122,48 +126,25 @@ func RepoCreate() http.HandlerFunc {
 			Timeout:   timeout,
 			Data:      data.Data,
 		}
-		if err := global.GormDB().Create(repo).Error; err != nil {
-			ctr.BadRequest(w, err)
-			return
-		}
-		ctr.OK(w, repo)
-	}
-}
 
-// RepoUpdate returns an http.HandlerFunc that processes an
-// http.Request to update the repo.
-func RepoUpdate() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var data RepoParams
-		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-			ctr.BadRequest(w, err)
+		var current store.ReposData
+		db := global.GormDB().Where(&store.ReposData{
+			Namespace: data.Namespace,
+			Name:      data.Name,
+		}).First(&current)
+		if db.Error != nil {
+			ctr.BadRequest(w, db.Error)
 			return
 		}
-		defer r.Body.Close()
-		fullData, err := CheckClone(data.Data)
+		if db.RowsAffected == 0 {
+			err = global.GormDB().Create(repo).Error
+		} else {
+			err = global.GormDB().Model(&store.ReposData{}).Where(&store.ReposData{
+				Namespace: data.Namespace,
+				Name:      data.Name,
+			}).Updates(repo).Error
+		}
 		if err != nil {
-			ctr.BadRequest(w, errors.New("exec yaml failed"))
-			return
-		}
-		if _, err := parsePipeline(fullData, nil); err != nil {
-			ctr.BadRequest(w, err)
-			return
-		}
-		var timeout int64 = global.DefaultRepoTimeout // Minute
-		if data.Timeout > 0 {
-			timeout = data.Timeout
-		}
-		repo := &store.ReposData{
-			Username:  data.Username,
-			Namespace: data.Namespace,
-			Name:      data.Name,
-			Timeout:   timeout,
-			Data:      data.Data,
-		}
-		if err := global.GormDB().Model(&store.ReposData{}).Where(&store.ReposData{
-			Namespace: data.Namespace,
-			Name:      data.Name,
-		}).Updates(repo).Error; err != nil {
 			ctr.BadRequest(w, err)
 			return
 		}
@@ -171,7 +152,7 @@ func RepoUpdate() http.HandlerFunc {
 	}
 }
 
-// RepoUpdate returns an http.HandlerFunc that processes an
+// RepoDelete returns an http.HandlerFunc that processes an
 // http.Request to delete the repo.
 func RepoDelete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
