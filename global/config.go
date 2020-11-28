@@ -18,7 +18,7 @@ import (
 
 const EnvPrefix = "DRONE_CONTROL"
 const PathStageLog = "slogs"
-const DefaultPort = 2638
+const DefaultPort = 2639
 const DefaultRepoTimeout = 30
 
 type Config struct {

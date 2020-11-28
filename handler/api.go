@@ -7,18 +7,20 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/zc2638/drone-control/global"
-	"github.com/zc2638/drone-control/global/route"
 	"github.com/zc2638/drone-control/handler/api"
 	"github.com/zc2638/drone-control/handler/public"
 	"github.com/zc2638/drone-control/handler/rpc"
 	"net/http"
 )
 
-func Static() http.Handler {
-	r := chi.NewRouter()
-	r.Handle("/image/avatar.jpg", public.Image())
-	return r
-}
+const (
+	PathRepo         = "/repo"
+	PathRepoSlug     = "/repo/{namespace}/{name}"
+	PathBuildSlug    = "/build/{namespace}/{name}"
+	PathBuildSlugNum = "/build/{namespace}/{name}/{build}"
+	PathBuildLogSlug = "/build/{namespace}/{name}/{build}/log/{stage}/{step}"
+	PathStreamLog    = "/stream/{repo}/{build}/{stage}/{step}"
+)
 
 func API() http.Handler {
 	r := chi.NewRouter()
@@ -27,21 +29,23 @@ func API() http.Handler {
 		middleware.Logger,
 	)
 
-	r.Get(route.APIRouteRepo, api.RepoList())
-	r.Post(route.APIRouteRepo, api.RepoCreate())
-	r.Get(route.APIRouteRepoInfoPath, api.RepoInfoBySlug())
-	r.Get(route.APIRouteRepoPath, api.RepoInfo())
-	r.Put(route.APIRouteRepoPath, api.RepoUpdate())
-	r.Delete(route.APIRouteRepoPath, api.RepoDelete())
+	r.Get(PathRepo, api.RepoList())
+	r.Post(PathRepo, api.RepoApply())
+	r.Get(PathRepoSlug, api.RepoInfoBySlug())
+	r.Delete(PathRepoSlug, api.RepoDelete())
 
-	r.Get(route.APIRouteBuild, api.BuildList())
-	r.Post(route.APIRouteBuild, api.Trigger())
-	r.Get(route.APIRouteBuildPath, api.BuildInfo())
-	r.Get(route.APIRouteStepLogPath, api.BuildLog())
+	r.Get(PathBuildSlug, api.BuildList())
+	r.Post(PathBuildSlug, api.Trigger())
+	r.Get(PathBuildSlugNum, api.BuildInfo())
+	r.Get(PathBuildLogSlug, api.BuildLog())
 
-	r.Route(route.APIRouteStream, func(cr chi.Router) {
-		cr.Get("/{repo}/{build}/{stage}/{step}", api.BuildLogStream())
-	})
+	r.Get(PathStreamLog, api.BuildLogStream())
+	return r
+}
+
+func Static() http.Handler {
+	r := chi.NewRouter()
+	r.Handle("/image/avatar.jpg", public.Image())
 	return r
 }
 

@@ -27,19 +27,18 @@ type Req struct {
 
 func Trigger() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, _ := strconv.ParseInt(
-			chi.URLParam(r, "repo"), 10, 64)
-		if id < 1 {
-			ctr.BadRequest(w, errors.New("cannot find repo, repo_id is invalid"))
+		namespace := chi.URLParam(r, "namespace")
+		name := chi.URLParam(r, "name")
+		repo, err := getRepo(namespace, name)
+		if err != nil {
+			ctr.BadRequest(w, err)
+			return
+		}
+		if repo == nil {
+			ctr.BadRequest(w, errors.New("cannot find the repo"))
 			return
 		}
 
-		var repo store.ReposData
-		db := global.GormDB().Where(&store.ReposData{ID: id}).First(&repo)
-		if db.Error != nil {
-			ctr.BadRequest(w, db.Error)
-			return
-		}
 		last, err := store.BuildStore().FindRef(context.Background(), repo.ID, "")
 		if err != nil && err != sql.ErrNoRows {
 			ctr.BadRequest(w, errors.New("trigger: cannot increment build sequence"))
