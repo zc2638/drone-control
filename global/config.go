@@ -11,6 +11,7 @@ import (
 	"github.com/pkgms/go/server"
 	"github.com/spf13/viper"
 	"github.com/zc2638/drone-control/global/database"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -18,7 +19,7 @@ import (
 
 const EnvPrefix = "DRONE_CONTROL"
 const PathStageLog = "slogs"
-const DefaultPort = 2639
+const ServerPort = 2639
 const DefaultRepoTimeout = 30
 
 type Config struct {
@@ -30,9 +31,9 @@ type Config struct {
 
 func Environ() *Config {
 	cfg := &Config{}
-	cfg.Server.Port = DefaultPort
+	cfg.Server.Port = ServerPort
 	cfg.RPC.Proto = "http"
-	cfg.RPC.Host = "127.0.0.1:" + strconv.Itoa(DefaultPort)
+	cfg.RPC.Host = net.JoinHostPort("127.0.0.1", strconv.Itoa(cfg.Server.Port))
 	return cfg
 }
 

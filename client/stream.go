@@ -9,10 +9,14 @@ import (
 	"strconv"
 )
 
-type streamClient struct{ *slug }
+type streamClient struct {
+	client    *Client
+	namespace string
+	name      string
+}
 
 func (c *streamClient) Log(build, stage, step int) (io.ReadCloser, error) {
-	res, err := c.client.R().
+	res, err := c.client.cli().
 		SetPathParams(map[string]string{
 			"namespace": c.namespace,
 			"name":      c.name,
