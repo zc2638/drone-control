@@ -48,10 +48,10 @@ type slug struct {
 }
 
 type Client struct {
-	config *Config
+	config Config
 }
 
-func New(cfg *Config) *Client {
+func New(cfg Config) Interface {
 	return &Client{config: cfg}
 }
 
