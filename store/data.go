@@ -50,11 +50,11 @@ type Repos struct {
 
 type ReposData struct {
 	ID        int64  `json:"id" gorm:"primaryKey;uniqueIndex;autoIncrement"`
-	Username  string `json:"username"`
+	UserID    int64  `json:"user_id"`
 	Namespace string `json:"namespace"`
 	Name      string `json:"name"`
 	Timeout   int64  `json:"timeout"`
 	Data      string `json:"data" gorm:"type:text"`
-	Created   int64  `json:"created" gorm:"autoCreateTime:milli"`
-	Updated   int64  `json:"updated" gorm:"autoUpdateTime:milli"`
+	Created   int64  `json:"created" gorm:"autoCreateTime"`
+	Updated   int64  `json:"updated" gorm:"autoUpdateTime"`
 }

@@ -10,12 +10,13 @@ import (
 	"github.com/pkgms/go/ctr"
 	"github.com/zc2638/drone-control/global"
 	"github.com/zc2638/drone-control/store"
+	"gorm.io/gorm"
 	"net/http"
 	"strconv"
 )
 
 type RepoParams struct {
-	Username  string `json:"username"`
+	UserID    int64  `json:"user_id"`
 	Namespace string `json:"namespace"`
 	Name      string `json:"name"`
 	Timeout   int64  `json:"timeout"`
@@ -73,8 +74,8 @@ func RepoInfo() http.HandlerFunc {
 // http.Request to get the repo details by namespace and name.
 func RepoInfoBySlug() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		namespace := r.URL.Query().Get("namespace")
-		name := r.URL.Query().Get("name")
+		namespace := chi.URLParam(r, "namespace")
+		name := chi.URLParam(r, "name")
 		if namespace == "" || name == "" {
 			ctr.BadRequest(w, errors.New("space or name is empty"))
 			return
@@ -120,7 +121,7 @@ func RepoApply() http.HandlerFunc {
 			timeout = data.Timeout
 		}
 		repo := &store.ReposData{
-			Username:  data.Username,
+			UserID:    data.UserID,
 			Namespace: data.Namespace,
 			Name:      data.Name,
 			Timeout:   timeout,
@@ -132,7 +133,7 @@ func RepoApply() http.HandlerFunc {
 			Namespace: data.Namespace,
 			Name:      data.Name,
 		}).First(&current)
-		if db.Error != nil {
+		if db.Error != nil && !errors.Is(gorm.ErrRecordNotFound, db.Error) {
 			ctr.BadRequest(w, db.Error)
 			return
 		}
@@ -156,8 +157,8 @@ func RepoApply() http.HandlerFunc {
 // http.Request to delete the repo.
 func RepoDelete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		namespace := r.URL.Query().Get("namespace")
-		name := r.URL.Query().Get("name")
+		namespace := chi.URLParam(r, "namespace")
+		name := chi.URLParam(r, "name")
 		if namespace == "" || name == "" {
 			ctr.BadRequest(w, errors.New("namespace or name is empty"))
 			return

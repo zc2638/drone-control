@@ -41,12 +41,6 @@ type Config struct {
 	Host string `json:"host"`
 }
 
-type slug struct {
-	client    *resty.Client
-	namespace string
-	name      string
-}
-
 type Client struct {
 	config Config
 }

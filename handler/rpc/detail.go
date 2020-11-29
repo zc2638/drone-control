@@ -64,7 +64,7 @@ func Detail(ctx context.Context, id int64) (*manager.Context, error) {
 			Namespace: repo.Namespace,
 			Name:      repo.Name,
 			Slug:      path.Join(repo.Namespace, repo.Name),
-			Signer:    repo.Username,
+			Signer:    "luban",
 			Branch:    "default",
 			Timeout:   repo.Timeout,
 			Created:   repo.Created,
