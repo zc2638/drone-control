@@ -10,16 +10,7 @@ import (
 	"github.com/drone/drone/store/stage"
 	"github.com/drone/drone/store/step"
 	"github.com/zc2638/drone-control/global"
-	"gorm.io/gorm"
 )
-
-type store struct {
-	db *gorm.DB
-}
-
-func (s *store) Init() {
-	s.db = global.GormDB()
-}
 
 func RepoStore() core.RepositoryStore {
 	return repos.New(global.DroneDB())

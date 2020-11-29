@@ -77,9 +77,10 @@ func authorization() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// prevents system administrators from accidentally
 			// exposing drone without credentials.
-			if token == "" {
-				w.WriteHeader(403)
-			} else if token == r.Header.Get("X-Drone-Token") {
+			//if token == "" {
+			//	w.WriteHeader(403)
+			//}
+			if token == r.Header.Get("X-Drone-Token") {
 				next.ServeHTTP(w, r)
 			} else {
 				w.WriteHeader(401)
