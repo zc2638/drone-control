@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/drone/drone/core"
 	"github.com/go-chi/chi"
 	"github.com/pkgms/go/ctr"
 	"github.com/zc2638/drone-control/global"
@@ -129,19 +130,41 @@ func BuildLog() http.HandlerFunc {
 			ctr.BadRequest(w, err)
 			return
 		}
-		step, err := store.StepStore().FindNumber(context.Background(), stage.ID, stepNumber)
-		if err != nil {
-			ctr.BadRequest(w, err)
-			return
+		var logIds []string
+		if stepNumber == -1 {
+			stepList, err := store.StepStore().List(context.Background(), stage.ID)
+			if err != nil {
+				ctr.BadRequest(w, err)
+				return
+			}
+			for _, step := range stepList {
+				logIds = append(logIds, strconv.FormatInt(step.ID, 10))
+			}
+		} else {
+			step, err := store.StepStore().FindNumber(context.Background(), stage.ID, stepNumber)
+			if err != nil {
+				ctr.BadRequest(w, err)
+				return
+			}
+			logIds = append(logIds, strconv.FormatInt(step.ID, 10))
 		}
-		fp := filepath.Join(global.PathStageLog, strconv.FormatInt(step.ID, 10))
-		data, err := ioutil.ReadFile(fp)
-		if err != nil {
-			fmt.Println("read log error: ", err)
-			ctr.BadRequest(w, errors.New("read log error"))
-			return
+		var result [][]core.Line
+		for _, id := range logIds {
+			fp := filepath.Join(global.PathStageLog, id)
+			data, err := ioutil.ReadFile(fp)
+			if err != nil {
+				fmt.Println("read log error: ", err)
+				ctr.BadRequest(w, errors.New("read log error"))
+				return
+			}
+			var lines []core.Line
+			if err := json.Unmarshal(data, &lines); err != nil {
+				ctr.BadRequest(w, errors.New("parse log error"))
+				return
+			}
+			result = append(result, lines)
 		}
-		ctr.Bytes(w, data)
+		ctr.OK(w, result)
 	}
 }
 
